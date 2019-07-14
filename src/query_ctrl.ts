@@ -3,11 +3,12 @@ import { QueryCtrl } from 'grafana/app/plugins/sdk';
 export class GenericDatasourceQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
 
-  private types: any;
-  private showJSON: boolean;
+  public types: object[];
+  public showJSON: boolean;
 
-  /** @ngInject **/
-  constructor($scope, $injector) {
+  scope: any; // for angular
+
+  constructor($scope: any, $injector: any)  {
     super($scope, $injector);
 
     this.target.hide = false;
@@ -24,7 +25,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     this.showJSON = false;
   }
 
-  getOptions(query) {
+  getOptions(query: any) {
     return this.datasource.metricFindQuery(query || '');
   }
 

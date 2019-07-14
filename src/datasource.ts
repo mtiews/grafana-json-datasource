@@ -1,38 +1,40 @@
-///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
-import isEqual from 'lodash/isEqual';
-import isObject from 'lodash/isObject';
-import isUndefined from 'lodash/isUndefined';
+import {
+  DataQueryRequest,
+  DataQueryResponse,
+  DataSourceApi,
+  DataSourceInstanceSettings,
+  MetricFindValue,
+} from '@grafana/ui';
+import { isEqual, isObject, isUndefined } from 'lodash';
+import { GenericOptions, GenericQuery } from './types';
 
-export class GenericDatasource {
+export class GenericDatasource extends DataSourceApi<GenericQuery, GenericOptions> {
 
-  name: string;
-  url: string;
-  q: any;
-  backendSrv: any;
-  templateSrv: any;
-  withCredentials: boolean;
-  headers: any;
+  private url: string;
+  private withCredentials: boolean;
+  private headers: any;
 
-  /** @ngInject **/
-  constructor(instanceSettings, $q, backendSrv, templateSrv) {
-    this.name = instanceSettings.name;
-    this.url = instanceSettings.url;
-    this.q = $q;
-    this.backendSrv = backendSrv;
-    this.templateSrv = templateSrv;
-    this.withCredentials = instanceSettings.withCredentials;
+  constructor(
+    instanceSettings: DataSourceInstanceSettings<GenericOptions>,
+    private backendSrv: any,
+    private templateSrv: any,
+  ) {
+    super(instanceSettings);
+
+    this.url = instanceSettings.url ? instanceSettings.url : '';
+
+    this.withCredentials = !!instanceSettings.withCredentials;
     this.headers = { 'Content-Type': 'application/json' };
     if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
       this.headers['Authorization'] = instanceSettings.basicAuth;
     }
   }
 
-  query(options) {
-    const query = options;
-    query.targets = this.buildQueryTargets(options);
+  query(options: DataQueryRequest<GenericQuery>): Promise<DataQueryResponse> {
+    const query = this.buildQueryParameters(options);
 
     if (query.targets.length <= 0) {
-      return this.q.when({ data: [] });
+      return Promise.resolve({ data: [] });
     }
 
     if (this.templateSrv.getAdhocFilters) {
@@ -54,20 +56,20 @@ export class GenericDatasource {
     return this.doRequest({
       url: `${this.url}/`,
       method: 'GET',
-    }).then((response) => {
+    }).then((response: any) => {
       if (response.status === 200) {
         return { status: 'success', message: 'Data source is working', title: 'Success' };
       }
 
       return {
-        status: 'error',
+        status: 'warning',
         message: `Data source is not working: ${response.message}`,
         title: 'Error',
       };
     });
   }
 
-  annotationQuery(options) {
+  annotationQuery(options: any) {
     const query = this.templateSrv.replace(options.annotation.query, {}, 'glob');
 
     const annotationQuery = {
@@ -87,12 +89,12 @@ export class GenericDatasource {
       url: `${this.url}/annotations`,
       method: 'POST',
       data: annotationQuery,
-    }).then((result) => {
+    }).then((result: any) => {
       return result.data;
     });
   }
 
-  metricFindQuery(query) {
+  metricFindQuery(query: any, options?: any): Promise<MetricFindValue[]> {
     const interpolated = {
       target: this.templateSrv.replace(query, null, 'regex'),
     };
@@ -104,8 +106,8 @@ export class GenericDatasource {
     }).then(this.mapToTextValue);
   }
 
-  mapToTextValue(result) {
-    return result.data.map((d, i) => {
+  mapToTextValue(result: any) {
+    return result.data.map((d: any, i: any) => {
       if (d && d.text && d.value) {
         return { text: d.text, value: d.value };
       }
@@ -117,73 +119,78 @@ export class GenericDatasource {
     });
   }
 
-  doRequest(options) {
+  doRequest(options: any) {
     options.withCredentials = this.withCredentials;
     options.headers = this.headers;
 
     return this.backendSrv.datasourceRequest(options);
   }
 
-  buildQueryTargets(options) {
-    return options.targets
-      .filter((target) => {
+  buildQueryParameters(options: any) {
+    options.targets
+      .filter((target: any) => {
         // remove placeholder targets
         return target.target !== 'select metric';
-      })
-      .map((target) => {
-        const data = isUndefined(target.data) || target.data.trim() === ''
-          ? null
-          : JSON.parse(target.data);
+      });
 
-        if (data !== null) {
-          Object.keys(data).forEach((key) => {
-            const value = data[key];
-            if (typeof value !== 'string') {
+    const targets = options.targets.map((target: any) => {
+      const data = isUndefined(target.data) || target.data.trim() === ''
+        ? null
+        : JSON.parse(target.data);
+
+      if (data !== null) {
+        Object.keys(data).forEach((key) => {
+          const value = data[key];
+          if (typeof value !== 'string') {
+            return;
+          }
+
+          const matches = value.match(/\$([\w]+)/g);
+          if (matches !== null) {
+            if (matches.length > 1) {
+              console.error(
+                'Use ${var1} format to specify multiple variables in one value' +
+                `so we can safely replace that. Passed value was "${value}".`,
+              );
+            } else {
+              data[key] = this.cleanMatch(matches[0], options);
+
               return;
             }
+          }
 
-            const matches = value.match(/\$([\w]+)/g);
-            if (matches !== null) {
-              if (matches.length > 1) {
-                console.error(
-                  'Use ${var1} format to specify multiple variables in one value' +
-                  `so we can safely replace that. Passed value was "${value}".`,
-                );
-              } else {
-                data[key] = this.cleanMatch(matches[0], options);
+          const matchesWithBraces = value.match(/\${([\w-]+)}/g);
+          if (matchesWithBraces !== null) {
+            data[key] = value
+              .replace(/\${([\w-]+)}/g, match => this.cleanMatch(match, options));
+          }
+        });
+      }
 
-                return;
-              }
-            }
+      let targetValue = target.target;
+      if (typeof targetValue === 'string') {
+        targetValue = this.templateSrv.replace(
+          target.target.toString(),
+          options.scopedVars,
+          'regex',
+        );
+      }
 
-            const matchesWithBraces = value.match(/\${([\w-]+)}/g);
-            if (matchesWithBraces !== null) {
-              data[key] = value
-                .replace(/\${([\w-]+)}/g, match => this.cleanMatch(match, options));
-            }
-          });
-        }
+      return {
+        data,
+        target: targetValue,
+        refId: target.refId,
+        hide: target.hide,
+        type: target.type,
+      };
+    });
 
-        let targetValue = target.target;
-        if (typeof targetValue === 'string') {
-          targetValue = this.templateSrv.replace(
-            target.target.toString(),
-            options.scopedVars,
-            'regex',
-          );
-        }
+    options.targets = targets;
 
-        return {
-          data,
-          target: targetValue,
-          refId: target.refId,
-          hide: target.hide,
-          type: target.type,
-        };
-      });
+    return options;
   }
 
-  cleanMatch(match, options) {
+  cleanMatch(match: string, options: any) {
     const replacedMatch = this.templateSrv.replace(match, options.scopedVars, 'json');
     if (typeof replacedMatch === 'string') {
       return replacedMatch.substring(1, replacedMatch.length - 1);
@@ -193,14 +200,16 @@ export class GenericDatasource {
 
   getVariables() {
     const index = isUndefined(this.templateSrv.index) ? {} : this.templateSrv.index;
-    const variables = {};
+    const variables: any = {};
     Object.keys(index).forEach((key) => {
       const variable = index[key];
 
       let variableValue = variable.current.value;
       if (variableValue === '$__all' || isEqual(variableValue, ['$__all'])) {
         if (variable.allValue === null) {
-          variableValue = variable.options.slice(1).map(textValuePair => textValuePair.value);
+          variableValue = variable.options
+            .slice(1)
+            .map((textValuePair: any) => textValuePair.value);
         } else {
           variableValue = variable.allValue;
         }
@@ -215,25 +224,25 @@ export class GenericDatasource {
     return variables;
   }
 
-  getTagKeys(options) {
+  getTagKeys(options: any): Promise<MetricFindValue[]> {
     return new Promise((resolve, reject) => {
       this.doRequest({
         url: `${this.url}/tag-keys`,
         method: 'POST',
         data: options,
-      }).then((result) => {
+      }).then((result: any) => {
         return resolve(result.data);
       });
     });
   }
 
-  getTagValues(options) {
+  getTagValues(options: any): Promise<MetricFindValue[]> {
     return new Promise((resolve, reject) => {
       this.doRequest({
         url: `${this.url}/tag-values`,
         method: 'POST',
         data: options,
-      }).then((result) => {
+      }).then((result: any) => {
         return resolve(result.data);
       });
     });
