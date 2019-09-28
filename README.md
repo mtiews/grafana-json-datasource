@@ -1,7 +1,10 @@
-# JSON Datasource – a generic backend datasource
+# JSON Datasource - Enhanced – a generic backend datasource
 
 The JSON Datasource executes JSON requests against arbitrary backends.   
-_JSON Datasource is built on top of the [Simple JSON Datasource](https://github.com/grafana/simple-json-datasource)._ It has refactored code, additional features and active development.
+_JSON Datasource is forked from [JSON Datasource](https://github.com/simPod/grafana-json-datasource)._ 
+
+Enhancements:
+- Tag Keys/Values can now be used in Grafana's query editor to further filter the data.
 
 ## Contents
 
@@ -17,21 +20,11 @@ _JSON Datasource is built on top of the [Simple JSON Datasource](https://github.
 
 ## Installation
 
-To install this plugin using the `grafana-cli` tool:
-
-```sh
- grafana-cli plugins install simpod-json-datasource
- ```
-
-See [here](https://grafana.com/plugins/simpod-json-datasource/installation) for more
-information.
+Clone this repo into your Grafana `plugins` directory.
 
 ## Setup
 
 When adding datasource add your API endpoint to the `URL` field. That's where datasource will make requests to.
-
-![Datasource setup](https://raw.githubusercontent.com/simPod/grafana-json-datasource/master/docs/images/datasource-setup.png)
-
 
 ## API
 
@@ -160,8 +153,6 @@ Example `table` response to be returned if the metric selected is `"type": "tabl
 
 #### Additional data
 
-![Additional data input](https://raw.githubusercontent.com/simPod/grafana-json-datasource/master/docs/images/additional-data-input.gif)
-
 Sending additional data for each metric is supported via the Additional JSON Data input field that allows you to enter JSON.
 
 For example when `{ "additional": "optional json" }` is entered into Additional JSON Data input, it is attached to the target data under `"data"` key:
@@ -172,7 +163,9 @@ For example when `{ "additional": "optional json" }` is entered into Additional 
 
 You can also enter variables:
 
-![Additional data varible input](https://raw.githubusercontent.com/simPod/grafana-json-datasource/master/docs/images/additional-data-variable-input.png)
+```json
+{ "key": $variableName } }
+```
 
 ### /annotations
 

@@ -1,7 +1,7 @@
 <query-editor-row query-ctrl="ctrl" class="generic-datasource-query-row" has-text-edit-mode="true">
   <div class="gf-form-inline">
     <div class="gf-form">
-      <label class="gf-form-label width-6 query-keyword">Format as</label>
+      <label class="gf-form-label width-8 query-keyword">FORMAT AS</label>
       <div class="gf-form-select-wrapper">
         <select
           class="gf-form-input gf-size-auto"
@@ -19,7 +19,7 @@
 
     <div ng-if="!ctrl.target.rawQuery">
       <div class="gf-form">
-        <label class="gf-form-label width-5 query-keyword">Metric</label>
+        <label class="gf-form-label width-5 query-keyword">METRIC</label>
         <gf-form-dropdown model="ctrl.target.target"
           allow-custom="true"
           lookup-text="true"
@@ -28,7 +28,24 @@
         </gf-form-dropdown>
       </div>
     </div>
+  </div>
 
+  <div class="gf-form-inline">
+    <div class="gf-form">
+      <label class="gf-form-label query-keyword width-7">
+        <span>WHERE</span>
+      </label>
+    </div>
+    <div class="gf-form" ng-repeat="segment in ctrl.whereSegments">
+      <metric-segment
+        segment="segment"
+        get-options="ctrl.getWhereSegments(segment, $index)"
+        on-change="ctrl.whereSegmentUpdated(segment, $index)"
+      ></metric-segment>
+    </div>
+  </div>
+
+  <div class="gf-form-inline">
     <div class="gf-form gf-form--grow right">
       <label class="gf-form-label gf-form-label--grow query-keyword" ng-click="ctrl.showJSON = !ctrl.showJSON">Additional JSON Data
         <i class="fa fa-caret-down" ng-show="ctrl.showJSON"></i>

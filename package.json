@@ -1,6 +1,6 @@
 {
   "name": "grafana-json-datasource",
-  "description": "Grafana JSON datasource",
+  "description": "Grafana JSON datasource - enhanced",
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.prod.js",
@@ -11,11 +11,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simPod/grafana-json-datasource.git"
+    "url": "git+https://github.com/mtiews/grafana-json-datasource.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/simPod/grafana-json-datasource/issues"
+    "url": "https://github.com/mtiews/grafana-json-datasource/issues"
   },
   "engineStrict": true,
   "devDependencies": {

@@ -1,4 +1,5 @@
 ///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
+import angular from 'angular';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import isUndefined from 'lodash/isUndefined';
@@ -166,6 +167,7 @@ export class GenericDatasource {
         }
 
         let targetValue = target.target;
+
         if (typeof targetValue === 'string') {
           targetValue = this.templateSrv.replace(
             target.target.toString(),
@@ -177,11 +179,33 @@ export class GenericDatasource {
         return {
           data,
           target: targetValue,
+          filter: this.renderFilters(target.wheres, options.scopedVars),
           refId: target.refId,
           hide: target.hide,
           type: target.type,
         };
       });
+  }
+
+  renderFilters(filters: any, scopedVars: any) {
+    const result: any[] = [];
+    if(!filters) {
+      return result;
+    }
+    for(const fe of filters) {
+      const cfe = angular.copy(fe);
+      if(cfe.operator === 'in' || cfe.operator === 'not in') {
+        cfe.value = this.templateSrv.replace(cfe.value, scopedVars, this.interpolateVariableAsArray);
+      } else {
+        cfe.value = this.templateSrv.replace(cfe.value, scopedVars);
+      }
+      result.push(cfe);
+    }
+    return result;
+  }
+
+  interpolateVariableAsArray(value: any, variable: { multi: any; includeAll: any }, defaultFormatFn: any) {
+    return value.join(",");
   }
 
   cleanMatch(match, options) {

@@ -1,6 +1,6 @@
 {
-    "name": "JSON",
-    "id": "simpod-json-datasource",
+    "name": "JSON Enhanced",
+    "id": "mtiews-json-datasource",
     "type": "datasource",
     "partials": {
         "config": "partials/config.html"
@@ -11,7 +11,7 @@
         "author": {
             "name": "Open Source Friends"
         },
-        "description": "JSON over HTTP datasource",
+        "description": "JSON over HTTP datasource - enhanced",
         "logos": {
             "small": "img/json-logo.svg",
             "large": "img/json-logo.svg"
@@ -19,15 +19,15 @@
         "links": [
             {
                 "name": "GitHub",
-                "url": "https://github.com/simPod/grafana-json-datasource"
+                "url": "https://github.com/mtiews/grafana-json-datasource"
             },
             {
                 "name": "MIT License",
-                "url": "https://github.com/simPod/grafana-json-datasource/blob/master/LICENSE"
+                "url": "https://github.com/mtiews/grafana-json-datasource/blob/master/LICENSE"
             }
         ],
-        "version": "0.1.4",
-        "updated": "2018-03-29"
+        "version": "0.0.1",
+        "updated": "2019-09-28"
     },
     "dependencies": {
         "grafanaVersion": "6.x.x",
