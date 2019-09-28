@@ -6,6 +6,8 @@ _JSON Datasource is forked from [JSON Datasource](https://github.com/simPod/graf
 Enhancements:
 - Tag Keys/Values can now be used in Grafana's query editor to further filter the data.
 
+![Filter settings in query editor](https://raw.githubusercontent.com/mtiews/grafana-json-datasource/master/docs/images/datasource-where.gif)
+
 ## Contents
 
 - [Installation](#installation)
