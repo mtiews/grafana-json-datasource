@@ -79,7 +79,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     }
 
     if (segment.type === 'key' || segment.type === 'plus-button') {
-      return this.datasource.getTagKeys()
+      return this.datasource.getTagKeys({ 'metric': this.target.target })
         .then(this.transformToSegments(false))
         .then((results: any) => {
           if (segment.type === 'key') {
@@ -89,7 +89,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         })
         .catch(this.handleQueryError.bind(this));
     } else if (segment.type === 'value') {
-      return this.datasource.getTagValues({ 'key': this.whereSegments[index - 2].value})
+      return this.datasource.getTagValues({ 'metric': this.target.target, 'key': this.whereSegments[index - 2].value})
         .then(this.transformToSegments(true))
         .catch(this.handleQueryError.bind(this));
     }
