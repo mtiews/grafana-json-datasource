@@ -1,12 +1,41 @@
 # JSON Datasource - Enhanced – a generic backend datasource
 
 The JSON Datasource executes JSON requests against arbitrary backends.   
-_JSON Datasource is forked from [JSON Datasource](https://github.com/simPod/grafana-json-datasource)._ 
+_JSON Datasource - Enhanced is forked from [JSON Datasource](https://github.com/simPod/grafana-json-datasource)._ 
 
-Enhancements:
-- Tag Keys/Values can now be used in Grafana's query editor to further filter the data.
+## Enhancements
+
+### Additional filterting in query editor
+
+Tag Keys/Values can now be used in Grafana's query editor to further filter the data.
 
 ![Filter settings in query editor](https://raw.githubusercontent.com/mtiews/grafana-json-datasource/master/docs/images/datasource-where.gif)
+
+Request to `/query` endpoint contains additional `filter` in `targets`:
+
+```json
+...
+"targets":[
+  {
+    "data":null,
+    "target":"upper_25",
+    "filter":[
+      {
+        "key":"Country",
+        "operator":"!=",
+        "value":"SE"
+      },
+      {
+        "condition":"AND",
+        "key":"Country",
+        "operator":"!=",
+        "value":"DE"
+      }
+    ]
+  }
+]
+...
+```
 
 ## Contents
 
@@ -166,7 +195,7 @@ For example when `{ "additional": "optional json" }` is entered into Additional 
 You can also enter variables:
 
 ```json
-{ "key": $variableName } }
+{ "key": "$variableName" } }
 ```
 
 ### /annotations
