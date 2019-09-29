@@ -37,6 +37,22 @@ Request to `/query` endpoint contains additional `filter` in `targets`:
 ...
 ```
 
+### Add metric to `/tag-keys` and `/tag-values` request
+
+To be able to return different tags based on the selected metric the selected metric was added to the corresponding requests.
+
+#### `/tag-keys` 
+
+```json
+{ "metric":"upper_25" }
+```
+
+#### `/tag-values`
+
+```json
+{ "metric":"upper_25", "key":"City" }
+```
+
 ## Contents
 
 - [Installation](#installation)
