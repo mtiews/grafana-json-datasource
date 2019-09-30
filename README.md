@@ -5,7 +5,7 @@ _JSON Datasource - Enhanced is forked from [JSON Datasource](https://github.com/
 
 ## Enhancements
 
-### Additional filterting in query editor
+### Additional filtering in query editor
 
 Tag Keys/Values can now be used in Grafana's query editor to further filter the data.
 
